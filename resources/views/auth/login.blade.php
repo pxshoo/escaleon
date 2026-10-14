@@ -1,6 +1,7 @@
 <x-guest-layout>
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
+    <a href="{{ route('google.login') }}" class="flex justify-center w-full mb-6 px-4 py-3 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">Ingresar con Google</a>
 
     <form method="POST" action="{{ route('login') }}">
         @csrf

@@ -13,6 +13,7 @@ return [
     */
 
     'api_key' => env('OPENAI_API_KEY'),
+    'model' => env('OPENAI_MODEL', 'gpt-4.1-mini'),
     'organization' => env('OPENAI_ORGANIZATION'),
 
     /*

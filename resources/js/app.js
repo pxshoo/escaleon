@@ -1,5 +1,6 @@
 import './bootstrap';
 import './assistant-dictation';
+import './assistant-loading';
 import './dashboard-refresh';
 
 document.querySelectorAll('[data-assistant-suggestion]').forEach(button => {
@@ -15,5 +16,14 @@ document.querySelectorAll('[data-assistant-suggestion]').forEach(button => {
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
+
+const privacyStates = new Map();
+Alpine.data('privacyCard', (key) => ({
+    concealed: privacyStates.get(key) ?? false,
+    togglePrivacy() {
+        this.concealed = !this.concealed;
+        privacyStates.set(key, this.concealed);
+    },
+}));
 
 Alpine.start();

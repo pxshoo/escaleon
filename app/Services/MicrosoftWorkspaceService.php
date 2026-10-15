@@ -12,6 +12,10 @@ class MicrosoftWorkspaceService
 {
     private bool $refreshed = false;
 
+    public string $teamsStatus = 'unavailable';
+
+    private ?int $lastStatus = null;
+
     public function __construct(private ConnectedAccount $account) {}
 
     private function refreshToken(): bool
@@ -51,6 +55,7 @@ class MicrosoftWorkspaceService
             if ($response->status() === 401 && $this->refreshToken()) {
                 $response = $send();
             }
+            $this->lastStatus = $response->status();
             if (! $response->successful()) {
                 Log::warning('Microsoft Graph: consulta rechazada.', ['status' => $response->status(), 'endpoint' => $path]);
 
@@ -59,6 +64,8 @@ class MicrosoftWorkspaceService
 
             return $response->json('value', []);
         } catch (ConnectionException) {
+            $this->lastStatus = null;
+
             return [];
         }
     }
@@ -70,11 +77,12 @@ class MicrosoftWorkspaceService
         $data = $this->get('me/mailFolders/inbox/messages', [
             '$filter' => 'receivedDateTime ge '.$start->toIso8601ZuluString().' and receivedDateTime lt '.$end->toIso8601ZuluString(),
             '$orderby' => 'receivedDateTime desc', '$top' => $limit,
-            '$select' => 'id,subject,from,receivedDateTime,bodyPreview',
+            '$select' => 'id,subject,from,receivedDateTime,bodyPreview,webLink',
         ]);
 
         return array_map(fn ($email) => [
             'subject' => $email['subject'] ?? '(Sin asunto)',
+            'link' => $email['webLink'] ?? null,
             'from' => $email['from']['emailAddress']['address'] ?? '',
             'snippet' => $email['bodyPreview'] ?? '', 'date' => $email['receivedDateTime'] ?? null,
         ], $data);
@@ -86,11 +94,15 @@ class MicrosoftWorkspaceService
             'startDateTime' => now()->utc()->toIso8601ZuluString(),
             'endDateTime' => now()->utc()->addDays(30)->toIso8601ZuluString(),
             '$orderby' => 'start/dateTime', '$top' => $limit,
-            '$select' => 'subject,start,end,isAllDay,isCancelled',
+            '$select' => 'id,subject,start,end,isAllDay,isCancelled,webLink,organizer',
         ]);
 
         return array_values(array_map(fn ($event) => [
+            'id' => $event['id'] ?? null,
             'summary' => $event['subject'] ?? '(Sin título)',
+            'organizer' => $event['organizer']['emailAddress']['name'] ?? $event['organizer']['emailAddress']['address'] ?? 'Organizador no disponible',
+            'today' => isset($event['start']['dateTime']) && Carbon::parse($event['start']['dateTime'], 'UTC')->setTimezone('America/Santiago')->isSameDay(now('America/Santiago')),
+            'link' => $event['webLink'] ?? null,
             'start' => ! empty($event['isAllDay']) ? null : Carbon::parse($event['start']['dateTime'], 'UTC')->setTimezone('America/Santiago')->toIso8601String(),
         ], array_filter($data, fn ($event) => empty($event['isCancelled']))));
     }
@@ -111,5 +123,32 @@ class MicrosoftWorkspaceService
         usort($tasks, fn ($a, $b) => ($b['overdue'] <=> $a['overdue']) ?: strcmp($a['due'] ?? '9999', $b['due'] ?? '9999'));
 
         return array_slice($tasks, 0, $limit);
+    }
+
+    public function getUnreadChats(): array
+    {
+        $chats = $this->get('me/chats', ['$expand' => 'lastMessagePreview', '$orderby' => 'lastMessagePreview/createdDateTime desc', '$top' => 30]);
+        $this->teamsStatus = $this->lastStatus === 200 ? 'ready' : ($this->lastStatus === 403 ? 'permission' : 'unavailable');
+        $items = [];
+        foreach ($chats as $chat) {
+            $message = $chat['lastMessagePreview'] ?? [];
+            $read = $chat['viewpoint']['lastMessageReadDateTime'] ?? null;
+            $sent = $message['createdDateTime'] ?? null;
+            $sender = $message['from']['user'] ?? [];
+            if (! $read || ! $sent || ! empty($message['isDeleted']) || ($message['messageType'] ?? '') !== 'message'
+                || ($sender['id'] ?? null) === $this->account->provider_id || ! Carbon::parse($sent)->gt(Carbon::parse($read))) {
+                continue;
+            }
+            $items[] = [
+                'id' => ($chat['id'] ?? '').':'.($message['id'] ?? $sent),
+                'from' => $sender['displayName'] ?? 'Participante de Teams',
+                'title' => ($chat['topic'] ?? null) ?: 'Chat de Teams',
+                'preview' => mb_substr(html_entity_decode(strip_tags($message['body']['content'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 0, 200),
+                'link' => $chat['webUrl'] ?? 'https://teams.microsoft.com/l/chat/'.rawurlencode($chat['id']).'/conversations',
+                'date' => $sent,
+            ];
+        }
+
+        return $items;
     }
 }

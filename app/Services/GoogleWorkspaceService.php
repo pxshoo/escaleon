@@ -82,7 +82,8 @@ class GoogleWorkspaceService
                 $headers[strtolower($header['name'])] = $header['value'];
             }
             $emails[] = ['subject' => $headers['subject'] ?? '(Sin asunto)', 'from' => $headers['from'] ?? '',
-                'id' => $message['id'], 'snippet' => $detail['snippet'] ?? '', 'date' => $headers['date'] ?? ''];
+                'id' => $message['id'], 'link' => 'https://mail.google.com/mail/u/0/#all/'.rawurlencode($message['id']),
+                'snippet' => $detail['snippet'] ?? '', 'date' => $headers['date'] ?? ''];
         }
 
         return $emails;

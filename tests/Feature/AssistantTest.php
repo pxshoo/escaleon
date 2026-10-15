@@ -22,6 +22,18 @@ class AssistantTest extends TestCase
         $this->post(route('assistant.ask'), ['prompt' => 'Hola'])->assertRedirect(route('login'));
     }
 
+    public function test_reply_formats_markdown_and_removes_unsafe_html(): void
+    {
+        $this->actingAs(User::factory()->create())->withSession([
+            'assistant_reply' => "## Reuniones\n\n**Revisión semanal**\n\n- Mañana a las 10:30\n\n<script>alert('test')</script>\n\n[Enlace](javascript:alert(1))",
+        ])->get('/dashboard')->assertOk()
+            ->assertSee('<h2>Reuniones</h2>', false)
+            ->assertSee('<strong>Revisión semanal</strong>', false)
+            ->assertDontSee('**Revisión semanal**', false)
+            ->assertDontSee('<script>', false)
+            ->assertDontSee('href="javascript:', false);
+    }
+
     public function test_prompt_is_validated(): void
     {
         $this->actingAs(User::factory()->create())->post(route('assistant.ask'), ['prompt' => ' '])

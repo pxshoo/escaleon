@@ -29,6 +29,7 @@ class OAuthController extends Controller
         'Mail.Read',
         'Calendars.Read',
         'Tasks.Read',
+        'Chat.Read',
     ];
 
     // Permisos requeridos para Google Workspace

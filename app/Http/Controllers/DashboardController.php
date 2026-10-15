@@ -32,6 +32,8 @@ class DashboardController extends Controller
             if ($refresh) {
                 $service = new MicrosoftWorkspaceService($microsoft);
                 $outlook = ['emails' => $service->getTodayEmails(4), 'events' => $service->getUpcomingEvents(4), 'tasks' => $service->getPendingTasks(8)];
+                $outlook['chats'] = $service->getUnreadChats();
+                $outlook['teams_status'] = $service->teamsStatus;
                 Cache::put($key, $outlook, now()->addMinutes(10));
             }
         }
@@ -47,10 +49,29 @@ class DashboardController extends Controller
     public function refresh(Request $request)
     {
         $data = $this->data($request, true);
+        $activities = [];
+        foreach (['google' => ['emails' => $data['emails'], 'events' => $data['events'], 'tasks' => $data['tasks']], 'microsoft' => $data['outlook']] as $provider => $groups) {
+            foreach ($groups as $type => $items) {
+                if (! is_array($items)) {
+                    continue;
+                }
+                foreach ($items as $item) {
+                    $identity = $item['id'] ?? $item['link'] ?? ($item['title'] ?? json_encode($item));
+                    $link = $item['link'] ?? null;
+                    $activities[] = [
+                        'key' => hash('sha256', $provider.':'.$type.':'.$identity),
+                        'type' => $type, 'provider' => $provider,
+                        'href' => is_string($link) && filter_var($link, FILTER_VALIDATE_URL) && parse_url($link, PHP_URL_SCHEME) === 'https'
+                            ? $link : '#'.$provider.'-'.$type,
+                    ];
+                }
+            }
+        }
 
         return response()->json([
             'html' => view('dashboard', $data)->fragment('workspace-data'),
             'counts' => [count($data['emails']), count($data['events']), count($data['tasks'])],
+            'activities' => $activities,
         ])->header('Cache-Control', 'no-store');
     }
 }

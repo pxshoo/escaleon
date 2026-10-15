@@ -1,44 +1,46 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Tu espacio de trabajo') }}
-        </h2>
-    </x-slot>
 
     <div class="py-10 escaleon-dashboard" data-dashboard-refresh-url="{{ route('dashboard.refresh') }}">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
+            <div class="escaleon-toolbar">
+                <div><span class="escaleon-breadcrumb">Espacio personal <span aria-hidden="true">/</span> Vista general</span></div>
+                <time datetime="{{ now('America/Santiago')->toDateString() }}">{{ now('America/Santiago')->locale('es')->isoFormat('dddd D [de] MMMM') }}</time>
+            </div>
+
             <section class="escaleon-hero">
                 <div>
-                    <span class="escaleon-eyebrow">ESCALEON HUB · TU DÍA, EN ORDEN</span>
+                    
                     <h1>Hola, {{ explode(' ', auth()->user()->name)[0] }}<span class="text-violet-300">.</span></h1>
-                    <p>Menos pestañas. Más claridad. Tu agenda, tus correos y tu asistente en un solo lugar.</p>
+                    <p>Todo lo que necesitas para avanzar, en un solo lugar. Revisa tu agenda y enfócate en lo importante.</p>
                     <a href="#centro-control" class="escaleon-hero-link">Organizar mi día <span aria-hidden="true">↗</span></a>
                 </div>
-                <div class="escaleon-hero-note">
-                    <span class="escaleon-live-dot" aria-hidden="true"></span>
-                    <span>{{ $connectedAccounts->count() }} {{ $connectedAccounts->count() === 1 ? 'cuenta conectada' : 'cuentas conectadas' }}</span>
-                    <p>Tu próximo paso empieza con una pregunta.</p>
-                </div>
+                
             </section>
+
+            <nav class="escaleon-section-nav" aria-label="Secciones del dashboard">
+                <a href="#conexiones">Conexiones</a>
+                <a href="#centro-control">Asistente</a>
+                <a href="#productividad">Productividad</a>
+            </nav>
 
             @if(isset($connectedAccounts['google']))
                 <div class="escaleon-stats">
-                    <div><span class="escaleon-stat-symbol text-rose-500" aria-hidden="true">✉</span><p>Correos recientes <strong>{{ count($emails) }}</strong><small>En la vista de Gmail</small></p></div>
-                    <div><span class="escaleon-stat-symbol text-blue-500" aria-hidden="true">▦</span><p>Próximos eventos <strong>{{ count($events) }}</strong><small>En tu calendario de Google</small></p></div>
-                    <div><span class="escaleon-stat-symbol text-amber-500" aria-hidden="true">✓</span><p>Tareas en la vista <strong>{{ count($tasks) }}</strong><small>Desde Google Tasks</small></p></div>
+                    <div><p>Correos recientes <strong>{{ count($emails) }}</strong><small>En la vista de Gmail</small></p></div>
+                    <div><p>Próximos eventos <strong>{{ count($events) }}</strong><small>En tu calendario de Google</small></p></div>
+                    <div><p>Tareas en la vista <strong>{{ count($tasks) }}</strong><small>Desde Google Tasks</small></p></div>
                 </div>
             @endif
 
             @if (session('status'))
-                <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded shadow-sm">
+                <div class="escaleon-notice bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded shadow-sm">
                     <p class="text-sm font-medium text-emerald-800">{{ session('status') }}</p>
                 </div>
             @endif
 
             <!-- Tarjetas de Conexión OAuth -->
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <span class="escaleon-section-label">01 / CONEXIONES</span>
+            <div id="conexiones" class="escaleon-connections bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+                
                 <h3 class="text-lg font-bold text-gray-900 mb-1">Tus cuentas, conectadas</h3>
                 <p class="text-sm text-gray-500 mb-6">Vincula tus cuentas para que Escaleon pueda sincronizar tu agenda, correos y tareas.</p>
 
@@ -121,19 +123,25 @@
 
 {{-- Centro de Control de Escaleon --}}
     <div id="centro-control" class="escaleon-control bg-white p-6 rounded-2xl border border-gray-100 shadow-sm my-8">
-        <span class="escaleon-section-label">02 / TU ASISTENTE</span>
-        <h3 class="text-lg font-bold text-gray-800">Centro de Control de Escaleon</h3>
+        
+        <div class="escaleon-control-heading">
+            <div class="escaleon-mascot-heading">
+                <img src="{{ asset('images/brand/escaleon-leon.png') }}" alt="Escaleon, el león asistente" width="70" height="116" class="escaleon-mascot">
+                <div><h3 class="text-lg font-bold text-gray-800">Centro de Control de Escaleon</h3><span class="escaleon-mascot-caption">Tu león asistente</span></div>
+            </div>
+            <span class="escaleon-ai-badge">Asistente IA</span>
+        </div>
         <p class="text-sm text-gray-500 mb-4">Escribe o habla. Escaleon te ayuda a encontrar lo importante y organizar tus próximos pasos.</p>
         <div class="escaleon-suggestions" aria-label="Ejemplos de consultas">
-            <button type="button" data-assistant-suggestion="Resume mis correos recientes">✉ Resumir correos</button>
-            <button type="button" data-assistant-suggestion="¿Cuáles son mis próximas reuniones?">▦ Próximas reuniones</button>
-            <button type="button" data-assistant-suggestion="Ayúdame a priorizar las tareas disponibles">✓ Priorizar tareas</button>
+            <button type="button" data-assistant-suggestion="Resume mis correos recientes">Resumir correos</button>
+            <button type="button" data-assistant-suggestion="¿Cuáles son mis próximas reuniones?">Próximas reuniones</button>
+            <button type="button" data-assistant-suggestion="Ayúdame a priorizar las tareas disponibles">Priorizar tareas</button>
         </div>
 
         @if(session('assistant_reply'))
-            <div class="mb-5 p-4 rounded-xl bg-violet-50 border border-violet-100 text-gray-800 text-sm whitespace-pre-line shadow-sm">
+            <div class="escaleon-response mb-5 p-4 rounded-xl bg-violet-50 border border-violet-100 text-gray-800 text-sm shadow-sm">
                 <span class="font-bold text-violet-700 block mb-1">Respuesta de Escaleon:</span>
-                {{ session('assistant_reply') }}
+                <div class="escaleon-answer">{!! \Illuminate\Support\Str::markdown(session('assistant_reply'), ['html_input' => 'strip', 'allow_unsafe_links' => false, 'max_nesting_level' => 20]) !!}</div>
             </div>
         @endif
 
@@ -146,7 +154,13 @@
 
         <form action="{{ route('assistant.ask') }}" method="POST" data-assistant-form>
             @csrf
+            <div data-assistant-loading class="escaleon-loading" role="status" aria-live="polite" hidden>
+                <span class="escaleon-loading-spinner" aria-hidden="true"></span>
+                <div><strong>Preparando respuesta…</strong><p>Estoy revisando tus datos y organizando la información.</p></div>
+            </div>
+            <label for="assistant-prompt" class="escaleon-prompt-label">¿En qué te puedo ayudar?</label>
             <textarea
+                id="assistant-prompt"
                 name="prompt"
                 aria-label="Consulta para el asistente"
                 rows="4"
@@ -171,26 +185,36 @@
         </form>
     </div>
 
-            <p data-refresh-status role="status" class="text-xs text-gray-500">La información se actualiza automáticamente cada 5 minutos.</p>
+            <section id="productividad" class="escaleon-productivity-heading">
+                <h2>Tu productividad</h2>
+                <button type="button" data-refresh-button class="escaleon-refresh-button">
+                    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7a7 7 0 0 1 11.5-1L20 9M4 15l2.4 3A7 7 0 0 0 17.9 17"/></svg>
+                    <span data-refresh-label>Actualizar datos</span>
+                </button>
+                <p>Correos, reuniones y tareas de tus cuentas conectadas.</p>
+                <p data-refresh-status role="status" class="text-xs text-gray-500">La información se actualiza automáticamente cada 5 minutos.</p>
+            </section>
             <div data-workspace-data>
             @fragment('workspace-data')
             {{-- Tarjetas de Datos de Google Workspace --}}
         @if(isset($connectedAccounts['google']))
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 {{-- Correos Recientes --}}
-                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                <div id="google-emails" x-data="privacyCard('google-emails')" class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-semibold text-gray-800 text-sm flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
                             Gmail (Recientes)
                         </h3>
-                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ count($emails) }}</span>
+                        <div class="flex items-center gap-2"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ count($emails) }}</span><x-privacy-toggle /></div>
                     </div>
-                    <div class="space-y-3">
+                    <div class="space-y-3 escaleon-private-content" :class="{ 'is-concealed': concealed }" :aria-hidden="concealed.toString()" :inert="concealed">
                         @forelse($emails as $email)
                             <div class="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                                <x-workspace-link :href="$email['link'] ?? (isset($email['id']) ? 'https://mail.google.com/mail/u/0/#all/'.rawurlencode($email['id']) : null)">
                                 <p class="text-xs font-semibold text-gray-900 truncate">{{ $email['subject'] }}</p>
                                 <p class="text-[11px] text-gray-500 truncate">{{ $email['from'] }}</p>
+                                </x-workspace-link>
                             </div>
                         @empty
                             <p class="text-xs text-gray-400 italic">No se encontraron correos nuevos.</p>
@@ -199,21 +223,23 @@
                 </div>
 
                 {{-- Próximos Eventos --}}
-                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                <div id="google-events" x-data="privacyCard('google-events')" class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-semibold text-gray-800 text-sm flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
                             Google Calendar
                         </h3>
-                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ count($events) }}</span>
+                        <div class="flex items-center gap-2"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ count($events) }}</span><x-privacy-toggle /></div>
                     </div>
-                    <div class="space-y-3">
+                    <div class="space-y-3 escaleon-private-content" :class="{ 'is-concealed': concealed }" :aria-hidden="concealed.toString()" :inert="concealed">
                         @forelse($events as $event)
                             <div class="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
+                                <x-workspace-link :href="$event['link'] ?? null">
                                 <p class="text-xs font-semibold text-gray-900 truncate">{{ $event['summary'] }}</p>
                                 <p class="text-[11px] text-blue-600 font-medium">
                                     {{ $event['start'] ? \Carbon\Carbon::parse($event['start'])->isoFormat('D MMM, HH:mm') : 'Todo el día' }}
                                 </p>
+                                </x-workspace-link>
                             </div>
                         @empty
                             <p class="text-xs text-gray-400 italic">Sin reuniones próximas programadas.</p>
@@ -222,15 +248,15 @@
                 </div>
 
                 {{-- Tareas Pendientes --}}
-                <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                <div id="google-tasks" x-data="privacyCard('google-tasks')" class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-semibold text-gray-800 text-sm flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                             Google Tasks
                         </h3>
-                        <span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ count($tasks) }}</span>
+                        <div class="flex items-center gap-2"><span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{{ count($tasks) }}</span><x-privacy-toggle /></div>
                     </div>
-                    <div class="space-y-3">
+                    <div class="space-y-3 escaleon-private-content" :class="{ 'is-concealed': concealed }" :aria-hidden="concealed.toString()" :inert="concealed">
                         @forelse($tasks as $task)
                             <div class="p-2.5 rounded-lg bg-gray-50 border border-gray-100">
                                 <p class="text-xs font-semibold text-gray-900 truncate">{{ $task['title'] }}</p>
@@ -249,19 +275,26 @@
                 <h3 class="text-lg font-bold text-gray-800 mb-4">Tu día en Outlook</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     @foreach(['emails' => 'Correos de hoy', 'events' => 'Próximas reuniones', 'tasks' => 'Tareas pendientes y atrasadas'] as $type => $title)
-                        <div class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                            <h4 class="font-semibold text-gray-800 text-sm mb-4">{{ $title }}</h4>
-                            <div class="space-y-3">
+                        <div id="microsoft-{{ $type }}" x-data="privacyCard('microsoft-{{ $type }}')" class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
+                            <div class="flex items-center justify-between mb-4 gap-2"><h4 class="font-semibold text-gray-800 text-sm">{{ $title }}</h4><x-privacy-toggle /></div>
+                            <div class="space-y-3 escaleon-private-content" :class="{ 'is-concealed': concealed }" :aria-hidden="concealed.toString()" :inert="concealed">
                                 @forelse(($outlook[$type] ?? []) as $item)
                                     <div class="p-3 rounded-lg bg-gray-50 border border-gray-100">
+                                        <x-workspace-link :href="$type !== 'tasks' ? ($item['link'] ?? null) : null">
                                         <p class="text-sm font-semibold text-gray-900">{{ $item['subject'] ?? $item['summary'] ?? $item['title'] }}</p>
                                         @if($type === 'emails')
                                             <p class="text-xs text-gray-500 truncate">{{ $item['from'] }}</p>
                                         @elseif($type === 'events')
+                                            @if(!empty($item['today']))
+                                                <p class="text-xs text-purple-800 mt-1">{{ $item['organizer'] ?? 'Un participante' }} organizó una reunión para hoy.</p>
+                                            @else
+                                                <p class="text-xs text-gray-500 mt-1">Organiza: {{ $item['organizer'] ?? 'No disponible' }}</p>
+                                            @endif
                                             <p class="text-xs text-blue-600 mt-1">{{ $item['start'] ? \Carbon\Carbon::parse($item['start'])->isoFormat('D MMM, HH:mm') : 'Todo el día' }}</p>
                                         @else
                                             <p class="text-xs mt-1 {{ $item['overdue'] ? 'text-red-700' : 'text-gray-500' }}">{{ $item['overdue'] ? 'Atrasada · ' : 'Pendiente · ' }}{{ $item['due'] ?? 'Sin vencimiento' }}</p>
                                         @endif
+                                        </x-workspace-link>
                                     </div>
                                 @empty
                                     <p class="text-xs text-gray-500">No hay datos disponibles. Se cargarán al actualizar; verifica los permisos si siguen vacíos.</p>
@@ -271,9 +304,30 @@
                     @endforeach
                 </div>
             @endif
+            @if(isset($connectedAccounts['microsoft']))
+                <div id="microsoft-chats" x-data="privacyCard('microsoft-chats')" class="bg-white p-5 rounded-xl border border-gray-100 shadow-sm mt-6">
+                    <div class="flex items-center justify-between mb-4"><h3 class="font-semibold text-sm">Microsoft Teams · Chats con mensajes no leídos</h3><x-privacy-toggle /></div>
+                    <div class="space-y-3 escaleon-private-content" :class="{ 'is-concealed': concealed }" :aria-hidden="concealed.toString()" :inert="concealed">
+                        @forelse(($outlook['chats'] ?? []) as $chat)
+                            <div><x-workspace-link :href="$chat['link']"><p class="font-semibold text-sm">Tienes mensajes no leídos de: {{ $chat['from'] }}</p><p class="text-xs text-gray-500">{{ $chat['title'] }}</p><p class="text-xs mt-1">{{ $chat['preview'] }}</p></x-workspace-link></div>
+                        @empty
+                            @if(($outlook['teams_status'] ?? '') === 'ready')
+                                <p class="text-sm text-gray-500">No se detectaron mensajes no leídos en los 30 chats recientes revisados.</p>
+                            @else
+                                <p class="text-sm text-gray-500">Teams requiere el permiso Chat.Read. Tras autorizarlo en Microsoft Entra, vuelve a conectar tu cuenta.</p>
+                                <a class="text-sm underline" href="{{ route('oauth.connect', ['provider' => 'microsoft']) }}">Autorizar acceso a Teams</a>
+                            @endif
+                        @endforelse
+                    </div>
+                </div>
+            @endif
             @endfragment
             </div>
 
+            <footer class="escaleon-company-footer">
+                <img src="{{ asset('images/brand/grupo-escanor.png') }}" alt="Grupo Escanor · Ecosistema integral de soluciones tecnológicas" width="240" height="49" loading="lazy">
+                <span>Escaleon · Tu centro de productividad</span>
+            </footer>
         </div>
     </div>
 </x-app-layout>

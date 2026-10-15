@@ -1,6 +1,8 @@
 <x-guest-layout>
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
+    <h1 class="escaleon-auth-title">Bienvenido a Escaleon</h1>
+    <p class="escaleon-auth-intro">Ingresa para organizar tu día.</p>
     <a href="{{ route('google.login') }}" class="flex justify-center w-full mb-6 px-4 py-3 border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50">Ingresar con Google</a>
 
     <form method="POST" action="{{ route('login') }}">
@@ -45,4 +47,5 @@
             </x-primary-button>
         </div>
     </form>
+    <p class="escaleon-auth-switch">¿Aún no tienes cuenta? <a href="{{ route('register') }}">Crear cuenta</a></p>
 </x-guest-layout>

@@ -6,15 +6,19 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800" />
+                        <span class="escaleon-brand">
+                            <img src="{{ asset('images/brand/isotipo-escanor.png') }}" alt="" width="38" height="34" class="escaleon-company-symbol">
+                            <span>escaleon<span class="escaleon-brand-dot">.</span></span>
+                        </span>
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
+                        {{ __('Vista general') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('gestion-equipos')" :active="false">Gestión de equipos</x-nav-link>
                 </div>
             </div>
 
@@ -70,6 +74,7 @@
             <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('gestion-equipos')" :active="false">Gestión de equipos</x-responsive-nav-link>
         </div>
 
         <!-- Responsive Settings Options -->
